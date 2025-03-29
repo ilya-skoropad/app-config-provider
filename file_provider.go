@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+const (
+	envSepparator = "="
+)
+
 type FileProvider struct {
 	file map[string]string
 }
@@ -15,14 +19,16 @@ func (e *FileProvider) Getenv(name string) string {
 
 func NewFileProvider(fileName string) *FileProvider {
 	content, err := os.ReadFile(fileName)
-	check(err)
+	if err != nil {
+		panic(err)
+	}
 
 	strRep := string(content)
 	lines := strings.Split(strRep, ENDL)
 	envMap := make(map[string]string, len(lines))
 
 	for _, line := range lines {
-		parts := strings.Split(line, "=")
+		parts := strings.Split(line, envSepparator)
 
 		if len(parts) != 2 {
 			panic("incorrect env file")
@@ -33,11 +39,5 @@ func NewFileProvider(fileName string) *FileProvider {
 
 	return &FileProvider{
 		file: envMap,
-	}
-}
-
-func check(e error) {
-	if e != nil {
-		panic(e)
 	}
 }
