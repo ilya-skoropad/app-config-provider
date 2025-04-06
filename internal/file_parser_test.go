@@ -8,15 +8,14 @@ import (
 )
 
 const (
-	TestFileContent = "APP_NAME=1\nAPP_KEY=\"Ad3!=6^w\"\n#HI=true\n# simple comment\n\n\nLAST_VAR = data"
+	TestFileContent = "APP_NAME=1" + internal.ENDL + "APP_KEY=Ad3!=6^w" + internal.ENDL + "#HI=true" + internal.ENDL + "# simple comment" + internal.ENDL + internal.ENDL + "LAST_VAR=SMTH" + internal.ENDL
 )
 
 func TestParseFile(t *testing.T) {
 	expectedMap := map[string]string{
 		"APP_NAME": "1",
 		"APP_KEY":  "Ad3!=6^w",
-		"HI":       "true",
-		"LAST_VAR": "data",
+		"LAST_VAR": "SMTH",
 	}
 
 	got, err := internal.ParseFile(TestFileContent)

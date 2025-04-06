@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"os"
+	"regexp"
 	"strings"
 
 	ie "github.com/ilya-skoropad/app-config-provider/errors"
@@ -11,7 +12,7 @@ import (
 func ReadFile(fileName string) (string, error) {
 	data, err := os.ReadFile(fileName)
 	if err != nil {
-		return "", err
+		return "", errors.New(ie.ErrorCannotReadFile)
 	}
 
 	return string(data), nil
@@ -22,13 +23,17 @@ func ParseFile(data string) (map[string]string, error) {
 	envMap := make(map[string]string, len(lines))
 
 	for _, line := range lines {
-		parts := strings.Split(line, "=")
-
-		if len(parts) != 2 {
-			return nil, errors.New(ie.ErrorIncorrectEnvFile)
+		if len(line) == 0 || line[0] == '#' {
+			continue
 		}
 
-		envMap[parts[0]] = parts[1]
+		r, _ := regexp.Compile("(^[A-Z_]{1,})=(.*)")
+		matches := r.FindStringSubmatch(line)
+		if len(matches) != 3 {
+			return map[string]string{}, errors.New(ie.ErrorIncorrectFile)
+		}
+
+		envMap[matches[1]] = matches[2]
 	}
 
 	return envMap, nil
