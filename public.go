@@ -2,8 +2,10 @@ package app_config_provider
 
 import (
 	"errors"
+	"os"
 	"slices"
 
+	ie "github.com/ilya-skoropad/app-config-provider/errors"
 	"github.com/ilya-skoropad/app-config-provider/internal"
 )
 
@@ -14,9 +16,6 @@ const (
 
 	Env  = 'e'
 	File = 'f'
-
-	ErrorWrongEnv      = "E-ML6DZY8C"
-	ErrorWrongProvider = "E-JZ5GEWG6"
 )
 
 type ConfigProvider interface {
@@ -24,19 +23,30 @@ type ConfigProvider interface {
 }
 
 type ConfigManager struct {
-	rules       map[rune]rune
+	rules       map[byte]byte
 	envFileName string
 }
 
-func (cm *ConfigManager) GetConfigProvider(envirinment rune) ConfigProvider {
+func (cm *ConfigManager) GetConfigProvider(envName string) (ConfigProvider, error) {
+	src := os.Getenv(envName)
+
+	if len(src) > 1 {
+		return nil, errors.New(ie.ErrorWrongEnvName)
+	}
+
+	var envirinment byte = src[0]
+	if len(src) == 0 {
+		envirinment = Dev
+	}
+
 	if cm.rules[envirinment] == Env {
-		return internal.NewOsProvider()
+		return internal.NewOsProvider(), nil
 	}
 
 	return internal.NewFileProvider(cm.envFileName)
 }
 
-func NewConfigManager(rules map[rune]rune, envFileName string) (*ConfigManager, error) {
+func NewConfigManager(rules map[byte]byte, envFileName string) (*ConfigManager, error) {
 	err := validateRules(rules)
 	if err != nil {
 		return nil, err
@@ -48,14 +58,14 @@ func NewConfigManager(rules map[rune]rune, envFileName string) (*ConfigManager, 
 	}, nil
 }
 
-func validateRules(rules map[rune]rune) error {
+func validateRules(rules map[byte]byte) error {
 	for envName, provName := range rules {
-		if !slices.Contains([]rune{Prod, Test, Dev}, envName) {
-			return errors.New(ErrorWrongEnv)
+		if !slices.Contains([]byte{Prod, Test, Dev}, envName) {
+			return errors.New(ie.ErrorWrongEnv)
 		}
 
-		if !slices.Contains([]rune{Env, File}, provName) {
-			return errors.New(ErrorWrongProvider)
+		if !slices.Contains([]byte{Env, File}, provName) {
+			return errors.New(ie.ErrorWrongProvider)
 		}
 	}
 

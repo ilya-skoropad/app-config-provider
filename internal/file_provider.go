@@ -1,16 +1,25 @@
 package internal
 
 type FileProvider struct {
-	file     map[string]string
-	fileName string
+	envs map[string]string
 }
 
 func (e *FileProvider) Getenv(name string) string {
-	return e.file[name]
+	return e.envs[name]
 }
 
-func NewFileProvider(fileName string) *FileProvider {
-	return &FileProvider{
-		fileName: fileName,
+func NewFileProvider(fileName string) (*FileProvider, error) {
+	data, err := ReadFile(fileName)
+	if err != nil {
+		return nil, err
 	}
+
+	envs, err := ParseFile(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &FileProvider{
+		envs: envs,
+	}, nil
 }
