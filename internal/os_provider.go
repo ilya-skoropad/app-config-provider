@@ -1,4 +1,4 @@
-package app_config_provider
+package internal
 
 import "os"
 
